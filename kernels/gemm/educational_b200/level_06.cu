@@ -71,6 +71,9 @@ void matmul_kernel(
         }
 
         wait(inputs_arrived, phase);
+        // Thread 0 re-arms inputs_arrived next iteration; without this sync a lagging
+        // thread could still be waiting on this phase and miss it (a parity wait).
+        warpgroup::sync(2);
         phase ^= 1;
 
         if (wg_laneid == 0) {
